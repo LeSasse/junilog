@@ -32,8 +32,8 @@ classifiers = [
 ]
 dynamic = ["version"]
 
-#[project.urls]
-#repository = "https://github.com/LeSasse/junilog"
+[project.urls]
+repository = "https://github.com/LeSasse/junilog"
 
 [project.scripts]
 junilog = "junilog.junilog:main"
