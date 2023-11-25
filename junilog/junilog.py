@@ -14,7 +14,7 @@ def parse_args():
         description="Parse and sum up junifer logs."
     )
     parser.add_argument(
-        "jobs_directory",
+        "job_directory",
         type=Path,
         help="Directory to a junifer pipeline directory.",
     )
@@ -54,11 +54,64 @@ def match_log_file_content(log_file_content):
     return pd.DataFrame(log_file_dict)
 
 
+def extract_lib_versions(log_data):
+    # Define the regular expression pattern
+    # to extract library versions within the specified markers
+    pattern = r"(?<====== Lib Versions =====\n)((?:.*\n)*?)(?<========================\n)"
+
+    # Find the match within the log data
+    match = re.search(pattern, log_data)
+
+    lib_section = match.group(1) if match else ""
+
+    # Define the pattern to extract library names and versions within the section
+    lib_pattern = r"(?P<lib_name>\S+):\s(?P<lib_version>\S+)"
+
+    # Find all matches in the library section
+    lib_matches = re.findall(lib_pattern, lib_section)
+
+    # Create a dictionary from the matches
+    return {lib_name: [lib_version] for lib_name, lib_version in lib_matches}
+
+
+def extract_errors(out_file_content):
+    # collect a list of all errors
+    error_pattern = (
+        r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3} - JUNIFER - ERROR - .+"
+    )
+
+    # Find all matches for errors in the log data
+    return re.findall(error_pattern, out_file_content)
+
+
+def match_out_file_content(out_file_content):
+    out_file_dict = extract_lib_versions(out_file_content)
+
+    # collect a list of all warnings
+    warning_pattern = (
+        r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3} - JUNIFER - WARNING - (.+)"
+    )
+
+    # Find all matches for warnings in the log data
+    warnings = re.findall(warning_pattern, out_file_content)
+    warnings = list(set(warnings))
+    warnings_str = "\n".join(warnings)
+
+    # extract error matches
+    errors = extract_errors(out_file_content)
+    errors_str = "\n".join(list(set(errors)))
+    out_file_dict["warnings"] = [warnings_str]
+    out_file_dict["errors_out_file"] = [errors_str]
+
+    return out_file_dict
+
+
 def main():
     """Run main program."""
     args = parse_args()
-    log_dir = args.jobs_directory / "logs"
+    log_dir = args.job_directory / "logs"
     elements = log_dir.glob("*.out")
+    element_df_list = []
     for file_name_out in elements:
         element_indices = element_indices_from_filename(file_name_out)
         file_name_log = file_name_out.with_suffix(".log")
@@ -70,8 +123,23 @@ def main():
             log_content_df.index = pd.MultiIndex.from_tuples(
                 [tuple(element_indices)]
             )
-            print(log_content_df)
 
         with open(file_name_out, "r") as f_out:
             out_file_content = f_out.read()
-            # print(out_file_content)
+            out_file_dict = match_out_file_content(out_file_content)
+
+        with open(file_name_err, "r") as f_err:
+            err_file_content = f_err.read()
+            additional_errors = "".join(
+                list(set(extract_errors(err_file_content)))
+            )
+            out_file_dict["errors_err_file"] = [additional_errors]
+
+        out_file_df = pd.DataFrame(out_file_dict)
+        out_file_df.index = pd.MultiIndex.from_tuples([tuple(element_indices)])
+        element_df_list.append(
+            pd.concat([log_content_df, out_file_df], axis=1)
+        )
+
+    out_df = pd.concat(element_df_list)
+    print(out_df)
