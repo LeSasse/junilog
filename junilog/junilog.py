@@ -30,7 +30,8 @@ def element_indices_from_filename(filename):
 def match_log_file_content(log_file_content):
     """Match log file using regex to extract ressources used."""
     patterns = {
-        "job_terminated": r"Job terminated.\n\s+\((\d+)\) Normal termination \(return value (\d+)\)",
+        "job_terminated": r"Job terminated.\n\s+\((\d+)\)",
+        "return_value": r"Normal termination \(return value (\d+)\)",
         "CPUs": r"Cpus\s+:\s+([\d.]+)",
         "disk_in_kb": r"Disk \(KB\)\s+:\s+([\d.]+)",
         "memory_in_mb": r"Memory \(MB\)\s+:\s+([\d.]+)",
@@ -47,9 +48,10 @@ def match_log_file_content(log_file_content):
     log_file_dict = {field: np.nan for field in patterns}
 
     for field, pattern in patterns.items():
-        match = re.search(pattern, log_file_content)
+        match = re.findall(pattern, log_file_content)
         if match:
-            log_file_dict[field] = [match.group(1)]
+            # consider only last match from .log file
+            log_file_dict[field] = [match[-1]]
 
     return pd.DataFrame(log_file_dict)
 
@@ -142,4 +144,4 @@ def main():
         )
 
     out_df = pd.concat(element_df_list)
-    print(out_df)
+    print(out_df[["return_value", "errors_out_file"]])
