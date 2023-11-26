@@ -46,28 +46,52 @@ def element_indices_from_filename(filename):
 def match_log_file_content(log_file_content):
     """Match log file using regex to extract ressources used."""
     patterns = {
-        "job_terminated": r"Job terminated.\n\s+\((\d+)\)",
-        "return_value": r"Normal termination \(return value (\d+)\)",
-        "CPUs": r"Cpus\s+:\s+([\d.]+)",
-        "disk_in_kb": r"Disk \(KB\)\s+:\s+([\d.]+)",
-        "memory_in_mb": r"Memory \(MB\)\s+:\s+([\d.]+)",
-        "run_remote_usage_usr": r"Usr (?:\d+) (\d{2}:\d{2}:\d{2}), [^<>]*Run Remote Usage",
-        "run_remote_usage_sys": r"Sys (?:\d+) (\d{2}:\d{2}:\d{2}) [^<>]*Run Remote Usage",
-        "run_local_usage_usr": r"Run Remote Usage[^<>]*Usr (?:\d+) (\d{2}:\d{2}:\d{2}), [^<>]*Run Local Usage",
-        "run_local_usage_sys": r"Run Remote Usage[^<>]*Sys (?:\d+) (\d{2}:\d{2}:\d{2}) [^<>]*Run Local Usage",
-        "total_remote_usage_usr": r"Run Local Usage[^<>]*Usr (?:\d+) (\d{2}:\d{2}:\d{2}), [^<>]*Total Remote Usage",
-        "total_remote_usage_sys": r"Run Local Usage[^<>]*Sys (?:\d+) (\d{2}:\d{2}:\d{2}) [^<>]*Total Remote Usage",
-        "total_local_usage_usr": r"Total Remote Usage[^<>]*Usr (?:\d+) (\d{2}:\d{2}:\d{2}), [^<>]*Total Local Usage",
-        "total_local_usage_sys": r"Total Remote Usage[^<>]*Sys (?:\d+) (\d{2}:\d{2}:\d{2}) [^<>]*Total Local Usage",
+        "job_terminated": (r"Job terminated.\n\s+\((\d+)\)", int),
+        "return_value": (r"Normal termination \(return value (\d+)\)", int),
+        "CPUs": (r"Cpus\s+:\s+([\d.]+)", float),
+        "disk_in_kb": (r"Disk \(KB\)\s+:\s+([\d.]+)", float),
+        "memory_in_mb": (r"Memory \(MB\)\s+:\s+([\d.]+)", float),
+        "run_remote_usage_usr": (
+            r"Usr (?:\d+) (\d{2}:\d{2}:\d{2}), [^<>]*Run Remote Usage",
+            str,
+        ),
+        "run_remote_usage_sys": (
+            r"Sys (?:\d+) (\d{2}:\d{2}:\d{2}) [^<>]*Run Remote Usage",
+            str,
+        ),
+        "run_local_usage_usr": (
+            r"Run Remote Usage[^<>]*Usr (?:\d+) (\d{2}:\d{2}:\d{2}), [^<>]*Run Local Usage",
+            str,
+        ),
+        "run_local_usage_sys": (
+            r"Run Remote Usage[^<>]*Sys (?:\d+) (\d{2}:\d{2}:\d{2}) [^<>]*Run Local Usage",
+            str,
+        ),
+        "total_remote_usage_usr": (
+            r"Run Local Usage[^<>]*Usr (?:\d+) (\d{2}:\d{2}:\d{2}), [^<>]*Total Remote Usage",
+            str,
+        ),
+        "total_remote_usage_sys": (
+            r"Run Local Usage[^<>]*Sys (?:\d+) (\d{2}:\d{2}:\d{2}) [^<>]*Total Remote Usage",
+            str,
+        ),
+        "total_local_usage_usr": (
+            r"Total Remote Usage[^<>]*Usr (?:\d+) (\d{2}:\d{2}:\d{2}), [^<>]*Total Local Usage",
+            str,
+        ),
+        "total_local_usage_sys": (
+            r"Total Remote Usage[^<>]*Sys (?:\d+) (\d{2}:\d{2}:\d{2}) [^<>]*Total Local Usage",
+            str,
+        ),
     }
 
     log_file_dict = {field: np.nan for field in patterns}
 
-    for field, pattern in patterns.items():
+    for field, (pattern, value_type) in patterns.items():
         match = re.findall(pattern, log_file_content)
         if match:
             # consider only last match from .log file
-            log_file_dict[field] = [match[-1]]
+            log_file_dict[field] = [value_type(match[-1])]
 
     return pd.DataFrame(log_file_dict)
 
