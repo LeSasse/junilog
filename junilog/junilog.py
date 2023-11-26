@@ -18,6 +18,22 @@ def parse_args():
         type=Path,
         help="Directory to a junifer pipeline directory.",
     )
+    parser.add_argument(
+        "--outfile",
+        "-o",
+        help="Path to outfile.",
+        type=Path,
+        default=Path("junilog.csv"),
+    )
+    parser.add_argument(
+        "--ipython",
+        "-i",
+        help=(
+            "Jump into IPython session to work "
+            "with the DataFrame straightaway.",
+        ),
+        action="store_true",
+    )
     return parser.parse_args()
 
 
@@ -57,6 +73,7 @@ def match_log_file_content(log_file_content):
 
 
 def extract_lib_versions(log_data):
+    """Extract library version information from *.out files."""
     # Define the regular expression pattern
     # to extract library versions within the specified markers
     pattern = r"(?<====== Lib Versions =====\n)((?:.*\n)*?)(?<========================\n)"
@@ -77,6 +94,7 @@ def extract_lib_versions(log_data):
 
 
 def extract_errors(out_file_content):
+    """Extract errors from log file using regex."""
     # collect a list of all errors
     error_pattern = (
         r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3} - JUNIFER - ERROR - .+"
@@ -87,6 +105,7 @@ def extract_errors(out_file_content):
 
 
 def match_out_file_content(out_file_content):
+    """Extract info from *.out files using regex."""
     out_file_dict = extract_lib_versions(out_file_content)
 
     # collect a list of all warnings
@@ -144,4 +163,16 @@ def main():
         )
 
     out_df = pd.concat(element_df_list)
-    print(out_df[["return_value", "errors_out_file"]])
+
+    exts = {".csv": ",", ".tsv": "\t"}
+    ext = args.outfile.suffix
+    sep = exts[ext]
+    out_df.to_csv(args.outfile, sep=sep)
+
+    if args.ipython:
+        from IPython import embed
+
+        print("The DataFrame is stored in the variable 'out_df'\n")
+        print("You can access it for example as:")
+        print("'print(out_df)'")
+        embed()

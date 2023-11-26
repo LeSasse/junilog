@@ -1,3 +1,3 @@
 [submodule "example/aomic-fc"]
 	path = example/aomic-fc
-	url = https://gin.g-node.org/LeSasse/aomic-fc.git
+	url = git@gin.g-node.org:/LeSasse/aomic-fc.git
