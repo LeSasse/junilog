@@ -56,4 +56,4 @@ can start meddling with it straight away.
 
 ## Demonstration:
 
-![Gif Demonstrating Usage](example/demonstration.gif)
+![Gif Demonstrating Usage](https://github.com/LeSasse/junilog/blob/master/example/demonstration.gif)
