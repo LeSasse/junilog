@@ -19,18 +19,18 @@ def parse_args():
         help="Directory to a junifer pipeline directory.",
     )
     parser.add_argument(
-        "--outfile",
         "-o",
+        "--outfile",
         help="Path to outfile.",
         type=Path,
         default=Path("junilog.csv"),
     )
     parser.add_argument(
-        "--ipython",
         "-i",
+        "--ipython",
         help=(
             "Jump into IPython session to work "
-            "with the DataFrame straightaway.",
+            "with the DataFrame straightaway."
         ),
         action="store_true",
     )
