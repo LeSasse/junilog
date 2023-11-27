@@ -121,7 +121,7 @@ def extract_errors(out_file_content):
     """Extract errors from log file using regex."""
     # collect a list of all errors
     error_pattern = (
-        r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3} - JUNIFER - ERROR - .+"
+        r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3} - JUNIFER - ERROR - (.+)"
     )
 
     # Find all matches for errors in the log data
@@ -175,7 +175,7 @@ def main():
 
         with open(file_name_err, "r") as f_err:
             err_file_content = f_err.read()
-            additional_errors = "".join(
+            additional_errors = "\n".join(
                 list(set(extract_errors(err_file_content)))
             )
             out_file_dict["errors_err_file"] = [additional_errors]

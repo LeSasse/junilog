@@ -54,6 +54,13 @@ also use the `--ipython` flag, if you have [ipython](https://ipython.org/)
 installed. This will start an IPython session with the DataFrame in memory, so you
 can start meddling with it straight away.
 
+You can then explore your logs to quickly gain some insights, for example about failed
+jobs. To see which subjects failed, and why, you could run in the **ipython console**:
+
+```ipython
+out_df.query("return_value == 1")["errors_out_file"]
+```
+
 ## Demonstration:
 
 ![Gif Demonstrating Usage](https://github.com/LeSasse/junilog/blob/master/example/demonstration.gif)
